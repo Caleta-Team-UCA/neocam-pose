@@ -47,15 +47,15 @@ class Analysis:
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
-    def update(self, detections: list):
+    def update(self, detections: [dai.RawImgDetections]):
         """Updates the analysis with new information"""
         # Check if there are any detections
         try:
             # If there is a detection, compute the size of the box
-            detection: dai.RawImgDetections = detections[0]
+            detection = detections[0]
             x = detection.xmax - detection.xmin
             y = detection.ymax - detection.ymin
-        except IndexError:
+        except (IndexError, TypeError) as er:
             # If not, the size is NaN
             x = np.nan
             y = np.nan

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # MobilenetSSD label texts
-labelMap = [
+LIST_LABELS = [
     "background",
     "aeroplane",
     "bicycle",
@@ -27,7 +27,8 @@ labelMap = [
 ]
 
 
-def frame_norm(frame, bbox):
+def frame_norm(frame, bbox) -> tuple:
+    """Normalizes the frame"""
     norm_vals = np.full(len(bbox), frame.shape[0])
     norm_vals[::2] = frame.shape[1]
     return (np.clip(np.array(bbox), 0, 1) * norm_vals).astype(int)
@@ -37,7 +38,32 @@ def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
     return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
 
-def display_frame(name, frame, detections, anonymize_method=None):
+def filter_detections(detections: list, target: str = "person") -> list:
+    """Takes a list of detections, returns only those with target label
+
+    Parameters
+    ----------
+    detections : list
+        List of depthai.RawImgDetections
+    target : str, optional
+        Target label, by default "person"
+
+    Returns
+    -------
+    list
+        List of depthai.RawImgDetections with label `target`
+
+    """
+    new_detections = []
+    for detection in detections:
+        label = LIST_LABELS[detection.label]
+        if label == target:
+            new_detections.append(detection)
+    return new_detections
+
+
+def display_frame(name: str, frame, detections: list, anonymize_method: str = None):
+    """Displays the frame on screen"""
     for detection in detections:
         bbox = frame_norm(
             frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax)
@@ -71,7 +97,7 @@ def display_frame(name, frame, detections, anonymize_method=None):
 
         cv2.putText(
             frame,
-            labelMap[detection.label],
+            LIST_LABELS[detection.label],
             (bbox[0] + 10, bbox[1] + 20),
             cv2.FONT_HERSHEY_TRIPLEX,
             0.5,
