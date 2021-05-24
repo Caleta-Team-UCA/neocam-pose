@@ -5,11 +5,15 @@ import depthai as dai
 
 from neocam.pipeline.base import Pipeline
 from neocam.utils.frame import to_planar, display_frame
+from neocam.utils.analysis import Analysis
 
 
 def run_pipeline_in_device(
     path_video: str, pipeline: Pipeline, name: str = "", anonymize_method: str = None
 ):
+    # Initialize analysis
+    analysis = Analysis()
+
     # Pipeline is defined, now we can connect to the device
     with dai.Device(pipeline) as device:
         # Start pipeline
@@ -47,6 +51,7 @@ def run_pipeline_in_device(
 
             if in_det is not None:
                 detections = in_det.detections
+                analysis.update(detections)
 
             if frame is not None:
                 display_frame(
