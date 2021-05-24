@@ -3,9 +3,11 @@ from neocam.pipeline.base import Pipeline
 
 class DetectionPipeline(Pipeline):
     def __init__(self):
+        """This pipeline is used for detection purposes"""
         super(DetectionPipeline, self).__init__()
 
     def create_neural_network(self, path_model: str):
+        """Initializes a neural network used for detecting newborns"""
         # Create xLink input to which host will send frames from the video file
         xin_frame = self.createXLinkIn()
         xin_frame.setStreamName(self.in_stream)

@@ -9,6 +9,7 @@ class Pipeline(dai.Pipeline):
     out_stream: str = "nn"
 
     def __init__(self):
+        """Basic pipeline for DepthAI"""
         super(Pipeline, self).__init__()
 
     @abstractmethod
