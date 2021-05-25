@@ -1,7 +1,7 @@
 import typer
 
 from neocam.utils.pipeline import Pipeline
-from neocam.utils.device import run_pipeline_in_device
+from neocam.utils.device import Device
 
 
 def main(
@@ -14,10 +14,8 @@ def main(
     pipeline = Pipeline(
         path_model_detection=path_model_detection, path_model_face=path_model_face
     )
-
-    run_pipeline_in_device(
-        path_video, pipeline, name=name, anonymize_method=anonymize_method
-    )
+    device = Device(pipeline, anonymize_method=anonymize_method)
+    device.stream_video(path_video, name=name)
 
 
 if __name__ == "__main__":
