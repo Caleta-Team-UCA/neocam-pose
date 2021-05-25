@@ -5,33 +5,38 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 
+from neocam.utils.series import moving_average
+
 
 class Analysis:
     fig: Figure
     ax: Axes
-    line_height: Line2D
-    line_width: Line2D
+    line1: Line2D
+    line2: Line2D
 
-    def __init__(self, size: int = 1000, frequency: int = 10):
+    def __init__(self, size: int = 1000, frequency: int = 24):
         # Initialize series
         ser = np.empty(size)
         ser[:] = np.nan
-        self.ser_width = ser
-        self.ser_height = ser
+        self.ser_ratio = ser
         # Plot
         self.frequency = frequency
         self._timer = 0
         self._initialize_plot(size)
 
     def __len__(self):
-        return len(self.ser_width)
+        return len(self.ser_ratio)
+
+    @property
+    def ser_ratio_movavg(self) -> np.array:
+        return moving_average(self.ser_ratio, size=self.frequency)
 
     def _initialize_plot(self, size: int):
         """Initializes the plot"""
         self.fig, self.ax = plt.subplots()
         self.fig.canvas.draw()
-        (self.line_width,) = self.ax.plot(self.ser_width, label="Width")
-        (self.line_height,) = self.ax.plot(self.ser_height, label="Height")
+        (self.line1,) = self.ax.plot(self.ser_ratio, label="Raw")
+        (self.line2,) = self.ax.plot(self.ser_ratio_movavg, label="Moving average")
         self.ax.grid()
         self.ax.set_xlabel("Time (frames)")
         self.ax.set_ylabel("Detection box size")
@@ -42,8 +47,8 @@ class Analysis:
 
     def _update_plot(self):
         """Updates the plot lines"""
-        self.line_width.set_ydata(self.ser_width)
-        self.line_height.set_ydata(self.ser_height)
+        self.line1.set_ydata(self.ser_ratio)
+        self.line2.set_ydata(self.ser_ratio_movavg)
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
@@ -60,8 +65,7 @@ class Analysis:
             x = np.nan
             y = np.nan
         # Update the series of box sizes
-        self.ser_width = np.append(self.ser_width[1:], x)
-        self.ser_height = np.append(self.ser_height[1:], y)
+        self.ser_ratio = np.append(self.ser_ratio[1:], x / y)
         # Plot the evolution of box size
         self._timer += 1
         if self._timer >= self.frequency:

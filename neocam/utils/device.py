@@ -3,9 +3,9 @@ from time import monotonic
 import cv2
 import depthai as dai
 
-from neocam.pipeline.base import Pipeline
-from neocam.utils.frame import filter_detections, to_planar, display_frame
 from neocam.utils.analysis import Analysis
+from neocam.utils.frame import filter_detections, to_planar, display_frame
+from neocam.utils.pipeline import Pipeline
 
 
 def run_pipeline_in_device(
@@ -22,8 +22,9 @@ def run_pipeline_in_device(
         # Input queue will be used to send video frames to the device.
         q_in = device.getInputQueue(name=pipeline.in_stream)
         # Output queue will be used to get nn data from the video frames.
-        q_det = device.getOutputQueue(
-            name=pipeline.out_stream, maxSize=4, blocking=False
+        q_det = device.getOutputQueue(name=pipeline.out_body, maxSize=4, blocking=False)
+        q_face = device.getOutputQueue(
+            name=pipeline.out_face, maxSize=4, blocking=False
         )
 
         detections = []
