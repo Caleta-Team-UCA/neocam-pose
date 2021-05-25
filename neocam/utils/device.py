@@ -63,9 +63,6 @@ class Device(dai.Device):
 
         if in_body is not None:
             self.body_detections = filter_body_detections(in_body.detections)
-            self.analysis.update(self.body_detections)
-        else:
-            self.analysis.update(None)
 
     def _display_frame(self, frame: np.ndarray):
         """Displays given frame in opened window"""
@@ -84,6 +81,7 @@ class Device(dai.Device):
         self._get_face_detections()
         self._get_body_detections()
         self._display_frame(frame)
+        self.analysis.update(self.body_detections, self.face_detections)
 
         if cv2.waitKey(1) == ord("q"):
             return False
