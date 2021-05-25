@@ -49,7 +49,7 @@ class Pipeline(dai.Pipeline):
 
     def create_face_network(self, path_model: str):
         # Network architecture
-        self.nn_face = self.createNeuralNetwork()
+        self.nn_face = self.createMobileNetDetectionNetwork()
         self.nn_face.setBlobPath(path_model)
 
         # Assign input and output frames

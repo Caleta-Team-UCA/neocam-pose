@@ -2,29 +2,7 @@ import cv2
 import numpy as np
 
 # MobilenetSSD label texts
-LIST_LABELS = [
-    "background",
-    "aeroplane",
-    "bicycle",
-    "bird",
-    "boat",
-    "bottle",
-    "bus",
-    "car",
-    "cat",
-    "chair",
-    "cow",
-    "diningtable",
-    "dog",
-    "horse",
-    "motorbike",
-    "person",
-    "pottedplant",
-    "sheep",
-    "sofa",
-    "train",
-    "tvmonitor",
-]
+from neocam.utils.detections import LIST_LABELS
 
 
 def frame_norm(frame, bbox) -> tuple:
@@ -36,30 +14,6 @@ def frame_norm(frame, bbox) -> tuple:
 
 def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
     return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
-
-
-def filter_detections(detections: list, target: str = "person") -> list:
-    """Takes a list of detections, returns only those with target label
-
-    Parameters
-    ----------
-    detections : list
-        List of depthai.RawImgDetections
-    target : str, optional
-        Target label, by default "person"
-
-    Returns
-    -------
-    list
-        List of depthai.RawImgDetections with label `target`
-
-    """
-    new_detections = []
-    for detection in detections:
-        label = LIST_LABELS[detection.label]
-        if label == target:
-            new_detections.append(detection)
-    return new_detections
 
 
 def display_frame(name: str, frame, detections: list, anonymize_method: str = None):
