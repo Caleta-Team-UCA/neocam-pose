@@ -78,12 +78,8 @@ class Device(dai.Device):
             )
             cv2.waitKey(5)
 
-    def _process_frame(self, cap) -> bool:
+    def _process_frame(self, frame: np.ndarray) -> bool:
         """Tries to process a frame"""
-        read_correctly, frame = cap.read()
-        if not read_correctly:
-            return False
-
         self._send_frame_to_network(frame)
         self._get_face_detections()
         self._get_body_detections()
@@ -112,6 +108,9 @@ class Device(dai.Device):
         cap = cv2.VideoCapture(path_video)
         cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
         while cap.isOpened():
-            keep = self._process_frame(cap)
+            read_correctly, frame = cap.read()
+            if not read_correctly:
+                break
+            keep = self._process_frame(frame)
             if not keep:
                 break
