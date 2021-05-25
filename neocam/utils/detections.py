@@ -1,3 +1,7 @@
+from typing import Iterable
+
+import depthai as dai
+
 LIST_LABELS = [
     "background",
     "aeroplane",
@@ -23,7 +27,9 @@ LIST_LABELS = [
 ]
 
 
-def filter_body_detections(detections: list, target: str = "person") -> list:
+def filter_body_detections(
+    detections: Iterable[dai.RawImgDetections], target: str = "person"
+) -> Iterable[dai.RawImgDetections]:
     """Takes a list of detections, returns only those with target label
 
     Parameters
@@ -47,7 +53,9 @@ def filter_body_detections(detections: list, target: str = "person") -> list:
     return new_detections
 
 
-def filter_face_detections(detections: list) -> list:
+def filter_face_detections(
+    detections: Iterable[dai.RawImgDetections],
+) -> Iterable[dai.RawImgDetections]:
     """Takes a list of detections, returns the first
 
     Parameters
