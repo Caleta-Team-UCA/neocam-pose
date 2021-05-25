@@ -41,7 +41,7 @@ class Device(dai.Device):
     def detections(self):
         return self.body_detections + self.face_detections
 
-    def send_frame_to_network(self, frame: np.ndarray):
+    def _send_frame_to_network(self, frame: np.ndarray):
         """Sends the frame as input to the networks"""
         img = dai.ImgFrame()
         img.setData(to_planar(frame, (300, 300)))
@@ -50,14 +50,14 @@ class Device(dai.Device):
         img.setHeight(300)
         self.q_in.send(img)
 
-    def get_face_detections(self):
+    def _get_face_detections(self):
         """Gets the detected faces from the network"""
         in_face = self.q_face.tryGet()
 
         if in_face:
             self.face_detections = filter_face_detections(in_face.detections)
 
-    def get_body_detections(self):
+    def _get_body_detections(self):
         """Gets the detected bodies from the network"""
         in_body = self.q_body.tryGet()
 
@@ -67,7 +67,8 @@ class Device(dai.Device):
         else:
             self.analysis.update(None)
 
-    def display_frame(self, frame):
+    def _display_frame(self, frame: np.ndarray):
+        """Displays given frame in opened window"""
         if frame is not None:
             display_frame(
                 self.window,
@@ -77,16 +78,16 @@ class Device(dai.Device):
             )
             cv2.waitKey(5)
 
-    def process_frame(self, cap) -> bool:
+    def _process_frame(self, cap) -> bool:
         """Tries to process a frame"""
         read_correctly, frame = cap.read()
         if not read_correctly:
             return False
 
-        self.send_frame_to_network(frame)
-        self.get_face_detections()
-        self.get_body_detections()
-        self.display_frame(frame)
+        self._send_frame_to_network(frame)
+        self._get_face_detections()
+        self._get_body_detections()
+        self._display_frame(frame)
 
         if cv2.waitKey(1) == ord("q"):
             return False
@@ -111,6 +112,6 @@ class Device(dai.Device):
         cap = cv2.VideoCapture(path_video)
         cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
         while cap.isOpened():
-            keep = self.process_frame(cap)
+            keep = self._process_frame(cap)
             if not keep:
                 break
