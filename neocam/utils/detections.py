@@ -34,14 +34,14 @@ def filter_body_detections(
 
     Parameters
     ----------
-    detections : list
+    detections : Iterable
         List of depthai.RawImgDetections
     target : str, optional
         Target label, by default "person"
 
     Returns
     -------
-    list
+    Iterable
         List of depthai.RawImgDetections with label `target`
 
     """
@@ -60,12 +60,12 @@ def filter_face_detections(
 
     Parameters
     ----------
-    detections : list
+    detections : Iterable
         List of depthai.RawImgDetections
 
     Returns
     -------
-    list
+    Iterable
         List of depthai.RawImgDetections with label `target`
 
     """
