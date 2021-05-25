@@ -17,18 +17,18 @@ class Pipeline(dai.Pipeline):
         """Basic pipeline for DepthAI"""
         super(Pipeline, self).__init__()
         self.setOpenVINOVersion(version=dai.OpenVINO.Version.VERSION_2021_1)
-        self.create_in_stream()
+        self._create_in_stream()
         self.create_body_network(path_model_detection)
         self.create_face_network(path_model_face)
 
-    def create_in_stream(self, name: str = None):
+    def _create_in_stream(self, name: str = None):
         """Create xLink input to which host will send frames from the video file"""
         self.in_frame = self.createXLinkIn()
         if name is None:
             name = self.in_stream
         self.in_frame.setStreamName(name)
 
-    def link_output(self, nn, name: str):
+    def _link_output(self, nn, name: str):
         """Assigns an output stream to given Neural Network"""
         nn_out = self.createXLinkOut()
         nn_out.setStreamName(name)
@@ -45,7 +45,7 @@ class Pipeline(dai.Pipeline):
 
         # Assign input and output frames
         self.in_frame.out.link(self.nn_body.input)
-        self.link_output(self.nn_body, self.out_body)
+        self._link_output(self.nn_body, self.out_body)
 
     def create_face_network(self, path_model: str):
         # Network architecture
@@ -54,4 +54,4 @@ class Pipeline(dai.Pipeline):
 
         # Assign input and output frames
         self.in_frame.out.link(self.nn_face.input)
-        self.link_output(self.nn_face, self.out_face)
+        self._link_output(self.nn_face, self.out_face)
