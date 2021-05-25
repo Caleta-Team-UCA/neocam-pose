@@ -22,7 +22,7 @@ def run_pipeline_in_device(
         # Input queue will be used to send video frames to the device.
         q_in = device.getInputQueue(name=pipeline.in_stream)
         # Output queue will be used to get nn data from the video frames.
-        q_det = device.getOutputQueue(name=pipeline.out_body, maxSize=4, blocking=False)
+        q_body = device.getOutputQueue(name=pipeline.out_body, maxSize=4, blocking=False)
         q_face = device.getOutputQueue(
             name=pipeline.out_face, maxSize=4, blocking=False
         )
@@ -48,10 +48,10 @@ def run_pipeline_in_device(
             img.setHeight(300)
             q_in.send(img)
 
-            in_det = q_det.tryGet()
+            in_body = q_body.tryGet()
 
-            if in_det is not None:
-                detections = filter_detections(in_det.detections)
+            if in_body is not None:
+                detections = filter_detections(in_body.detections)
                 analysis.update(detections)
             else:
                 analysis.update(None)
