@@ -56,17 +56,17 @@ def display_frame(
         cv2.putText(
             frame,
             LIST_LABELS[detection.label],
-            (bbox[0] + 10, bbox[1] + 20),
+            (bbox[0] + 10, bbox[1] + 30),
             cv2.FONT_HERSHEY_TRIPLEX,
-            0.5,
+            1.5,
             255,
         )
         cv2.putText(
             frame,
             f"{int(detection.confidence * 100)}%",
-            (bbox[0] + 10, bbox[1] + 40),
+            (bbox[0] + 10, bbox[1] + 60),
             cv2.FONT_HERSHEY_TRIPLEX,
-            0.5,
+            1.5,
             255,
         )
     cv2.resizeWindow(name, 700, 600)
