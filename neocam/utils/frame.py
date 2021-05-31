@@ -5,7 +5,7 @@ import numpy as np
 from neocam.utils.detections import LIST_LABELS
 
 
-def frame_norm(frame, bbox) -> tuple:
+def frame_norm(frame: np.ndarray, bbox: np.ndarray) -> np.ndarray:
     """Normalizes the frame"""
     norm_vals = np.full(len(bbox), frame.shape[0])
     norm_vals[::2] = frame.shape[1]
@@ -16,12 +16,10 @@ def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
     return cv2.resize(arr, shape).transpose(2, 0, 1).flatten()
 
 
-def anonymize(frame, bbox, anonymize_method):
+def anonymize(frame: np.ndarray, bbox: np.ndarray, anonymize_method: str = None):
+    """Anonymize the face"""
     # Locate the face
-    y1 = int(1.3 * bbox[1])
-    y2 = int(bbox[1] + 0.2 * (bbox[3] - bbox[1]))
-    x1 = int(bbox[0])
-    x2 = int(bbox[0] + 0.7 * (bbox[2] - bbox[0]))
+    y1, y2, x1, x2 = int(bbox[1]), int(bbox[3]), int(bbox[0]), int(bbox[2])
 
     if anonymize_method == "blur":
         face = frame[y1:y2, x1:x2]
@@ -37,21 +35,21 @@ def anonymize(frame, bbox, anonymize_method):
         # otherwise, we must be applying the "filled" face
         # anonymization method
     elif anonymize_method == "filled":
-        cv2.rectangle(
-            frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 255, 255), -1
-        )
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), -1)
 
     return frame
 
 
-def display_frame(name: str, frame, detections: list, anonymize_method: str = None):
+def display_frame(
+    name: str, frame: np.ndarray, detections: list, anonymize_method: str = None
+):
     """Displays the frame on screen"""
     for detection in detections:
         bbox = frame_norm(
             frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax)
         )
 
-        frame = anonymize(frame, bbox, anonymize_method)
+        frame = anonymize(frame, bbox, anonymize_method=anonymize_method)
         cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 
         cv2.putText(
