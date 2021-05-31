@@ -1,6 +1,5 @@
 import depthai as dai
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
@@ -37,7 +36,7 @@ class Analysis:
         self.ax.set_xlabel("Time (frames)")
         self.ax.set_ylabel("Detection box size")
         self.ax.set_xlim(0, size)
-        self.ax.set_ylim(0, 0.9)
+        self.ax.set_ylim(0, 5)
         self.ax.legend()
         plt.show(block=False)
 
@@ -52,13 +51,18 @@ class Analysis:
             # If there is a detection, compute the size of the box
             body = body_detections[0]
             face = face_detections[0]
-            right = body.xmax - face.xmax
-            left = face.xmin - body.xmin
-            up = face.ymin - body.ymin
-            down = body.ymax - face.ymax
+            # Compute the face size
+            size = face.ymax - face.ymin
+            right = (body.xmax - face.xmax) / size
+            left = (face.xmin - body.xmin) / size
+            up = (face.ymin - body.ymin) / size
+            down = (body.ymax - face.ymax) / size
         except (IndexError, TypeError) as er:
-            # If not, the size is NaN
-            right, left, up, down = np.nan, np.nan, np.nan, np.nan
+            # If not, the size is the last value
+            right = self.ser_right.ser[-1]
+            left = self.ser_left.ser[-1]
+            up = self.ser_up.ser[-1]
+            down = self.ser_down.ser[-1]
         # Update the series of box sizes
         self.ser_right.append(right)
         self.ser_left.append(left)
