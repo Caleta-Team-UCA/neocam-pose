@@ -49,6 +49,7 @@ def filter_body_detections(
     for detection in detections:
         label = LIST_LABELS[detection.label]
         if label == target:
+            detection.label = 0
             new_detections.append(detection)
     return new_detections
 
@@ -70,6 +71,8 @@ def filter_face_detections(
 
     """
     try:
-        return [detections[0]]
+        detection = detections[0]
+        detection.label = 1
+        return [detection]
     except IndexError:
         return []
