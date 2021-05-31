@@ -41,23 +41,12 @@ class Analysis:
         self.ax.legend()
         plt.show(block=False)
 
-    def _update_plot(self):
-        """Updates the plot lines"""
-        if not self.plot:
-            return
-        self.ser_right.update_plot()
-        self.ser_left.update_plot()
-        self.ser_up.update_plot()
-        self.ser_down.update_plot()
-        self.fig.canvas.draw()
-        self.fig.canvas.flush_events()
-
-    def update(
+    def _update_series(
         self,
         body_detections: [dai.RawImgDetections],
         face_detections: [dai.RawImgDetections],
     ):
-        """Updates the analysis with new information"""
+        """Updates the series"""
         # Check if there are any body_detections
         try:
             # If there is a detection, compute the size of the box
@@ -75,6 +64,26 @@ class Analysis:
         self.ser_left.append(left)
         self.ser_up.append(up)
         self.ser_down.append(down)
+
+    def _update_plot(self):
+        """Updates the plot lines"""
+        if not self.plot:
+            return
+        self.ser_right.update_plot()
+        self.ser_left.update_plot()
+        self.ser_up.update_plot()
+        self.ser_down.update_plot()
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+
+    def update(
+        self,
+        body_detections: [dai.RawImgDetections],
+        face_detections: [dai.RawImgDetections],
+    ):
+        """Updates the analysis with new information"""
+        # Update the series
+        self._update_series(body_detections, face_detections)
         # Plot the evolution of box size
         self._timer += 1
         if self._timer >= self.frequency:
