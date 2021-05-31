@@ -48,8 +48,8 @@ def display_frame(
         bbox = frame_norm(
             frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax)
         )
-        # Face label is 1, anonymize if requested
-        if detection.label == 1:
+        # Anonymize face
+        if LIST_LABELS[detection.label] == "face":
             frame = anonymize(frame, bbox, anonymize_method=anonymize_method)
         cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 2)
 

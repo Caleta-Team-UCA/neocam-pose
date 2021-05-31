@@ -18,12 +18,13 @@ LIST_LABELS = [
     "dog",
     "horse",
     "motorbike",
-    "person",
+    "person",  # index 15
     "pottedplant",
     "sheep",
     "sofa",
     "train",
     "tvmonitor",
+    "face"  # index 21, added by us
 ]
 
 
@@ -49,7 +50,6 @@ def filter_body_detections(
     for detection in detections:
         label = LIST_LABELS[detection.label]
         if label == target:
-            detection.label = 0
             new_detections.append(detection)
     return new_detections
 
@@ -72,7 +72,7 @@ def filter_face_detections(
     """
     try:
         detection = detections[0]
-        detection.label = 1
+        detection.label = 21
         return [detection]
     except IndexError:
         return []
