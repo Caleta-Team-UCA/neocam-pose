@@ -11,7 +11,7 @@ class Analysis:
     fig: Figure
     ax: Axes
 
-    def __init__(self, size: int = 1000, frequency: int = 24):
+    def __init__(self, size: int = 1000, frequency: int = 24, plot: bool = True):
         # Initialize series
         self.ser_right = Series(size=size, frequency=frequency, label="Right")
         self.ser_left = Series(size=size, frequency=frequency, label="Left")
@@ -20,10 +20,13 @@ class Analysis:
         # Plot
         self.frequency = frequency
         self._timer = 0
+        self.plot = plot
         self._initialize_plot(size)
 
     def _initialize_plot(self, size: int):
         """Initializes the plot"""
+        if not self.plot:
+            return
         self.fig, self.ax = plt.subplots()
         self.fig.canvas.draw()
         self.ser_right.plot(self.ax)
@@ -40,6 +43,8 @@ class Analysis:
 
     def _update_plot(self):
         """Updates the plot lines"""
+        if not self.plot:
+            return
         self.ser_right.update_plot()
         self.ser_left.update_plot()
         self.ser_up.update_plot()
