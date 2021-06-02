@@ -15,7 +15,7 @@ class Analysis:
     def __init__(
         self,
         size: int = 1000,
-        frequency: int = 24,
+        frequency: int = 6,
         plot_series: bool = False,
         dummy: bool = True,
     ):
