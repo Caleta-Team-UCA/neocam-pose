@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from neocam.utils.dummy import Dummy
 from neocam.utils.series import Series
 
 
@@ -10,17 +11,27 @@ class Analysis:
     fig: Figure
     ax: Axes
 
-    def __init__(self, size: int = 1000, frequency: int = 24, plot: bool = True):
+    def __init__(
+        self,
+        size: int = 1000,
+        frequency: int = 6,  # 24,
+        plot: bool = False,
+        dummy: bool = True,
+    ):
         # Initialize series
         self.ser_right = Series(size=size, frequency=frequency, label="Right")
         self.ser_left = Series(size=size, frequency=frequency, label="Left")
         self.ser_up = Series(size=size, frequency=frequency, label="Up")
         self.ser_down = Series(size=size, frequency=frequency, label="Down")
-        # Plot
+
         self.frequency = frequency
         self._timer = 0
+        # Plot series
         self.plot = plot
         self._initialize_plot(size)
+        # Plot dummy
+        self.plot_dummy = dummy
+        self._initialize_dummy()
 
     def _initialize_plot(self, size: int):
         """Initializes the plot"""
@@ -39,6 +50,11 @@ class Analysis:
         self.ax.set_ylim(0, 5)
         self.ax.legend()
         plt.show(block=False)
+
+    def _initialize_dummy(self):
+        if not self.plot_dummy:
+            return
+        self.dummy = Dummy()
 
     def _update_series(
         self,
@@ -80,6 +96,14 @@ class Analysis:
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
+    def _update_dummy(self):
+        if not self.plot_dummy:
+            return
+        down = self.ser_down.movavg[-1]
+        left = self.ser_left.movavg[-1]
+        right = self.ser_right.movavg[-1]
+        self.dummy.update(down, right, left)
+
     def update(
         self,
         body_detections: [dai.RawImgDetections],
@@ -92,4 +116,5 @@ class Analysis:
         self._timer += 1
         if self._timer >= self.frequency:
             self._update_plot()
+            self._update_dummy()
             self._timer = 0
