@@ -80,8 +80,9 @@ class Device(dai.Device):
         self._send_frame_to_network(frame)
         self._get_face_detections()
         self._get_body_detections()
-        self._display_frame(frame)
         self.analysis.update(self.body_detections, self.face_detections)
+        self.analysis.plot(frame)
+        self._display_frame(frame)
 
         if cv2.waitKey(1) == ord("q"):
             return False

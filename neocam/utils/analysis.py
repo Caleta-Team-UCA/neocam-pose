@@ -1,5 +1,6 @@
 import depthai as dai
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
@@ -14,8 +15,8 @@ class Analysis:
     def __init__(
         self,
         size: int = 1000,
-        frequency: int = 6,  # 24,
-        plot: bool = False,
+        frequency: int = 24,
+        plot_series: bool = False,
         dummy: bool = True,
     ):
         # Initialize series
@@ -27,7 +28,7 @@ class Analysis:
         self.frequency = frequency
         self._timer = 0
         # Plot series
-        self.plot = plot
+        self.plot_series = plot_series
         self._initialize_plot(size)
         # Plot dummy
         self.plot_dummy = dummy
@@ -35,7 +36,7 @@ class Analysis:
 
     def _initialize_plot(self, size: int):
         """Initializes the plot"""
-        if not self.plot:
+        if not self.plot_series:
             return
         self.fig, self.ax = plt.subplots()
         self.fig.canvas.draw()
@@ -87,7 +88,7 @@ class Analysis:
 
     def _update_plot(self):
         """Updates the plot lines"""
-        if not self.plot:
+        if not self.plot_series:
             return
         self.ser_right.update_plot()
         self.ser_left.update_plot()
@@ -97,12 +98,15 @@ class Analysis:
         self.fig.canvas.flush_events()
 
     def _update_dummy(self):
-        if not self.plot_dummy:
-            return
         down = self.ser_down.movavg[-1]
         left = self.ser_left.movavg[-1]
         right = self.ser_right.movavg[-1]
         self.dummy.update(down, right, left)
+
+    def _plot_dummy(self, frame: np.ndarray):
+        if not self.plot_dummy:
+            return
+        self.dummy.plot(frame)
 
     def update(
         self,
@@ -112,9 +116,14 @@ class Analysis:
         """Updates the analysis with new information"""
         # Update the series
         self._update_series(body_detections, face_detections)
+        # Update dummy
+        self._update_dummy()
+
+    def plot(self, frame: np.ndarray):
         # Plot the evolution of box size
         self._timer += 1
         if self._timer >= self.frequency:
             self._update_plot()
-            self._update_dummy()
             self._timer = 0
+        # Add dummy to baby image
+        self._plot_dummy(frame)
