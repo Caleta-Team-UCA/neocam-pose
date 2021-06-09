@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.lines import Line2D
@@ -47,8 +49,12 @@ class Series:
         self.ser = np.append(self.ser[1:], x)
 
     @property
-    def movavg(self):
+    def movavg(self) -> np.ndarray:
         return moving_average(self.ser, size=self.frequency)
+
+    @property
+    def list(self) -> list:
+        return [-1 if math.isnan(x) else x for x in self.ser.tolist()]
 
     def plot(self, ax: Axes):
         """Plots the line of given axes"""
