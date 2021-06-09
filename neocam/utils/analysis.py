@@ -1,3 +1,5 @@
+import json
+
 import depthai as dai
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,6 +35,16 @@ class Analysis:
         # Plot dummy
         self.plot_dummy = dummy
         self._initialize_dummy()
+
+    @property
+    def dict(self) -> dict:
+        """Dictionary containing the series"""
+        return {
+            "right": self.ser_right.list,
+            "left": self.ser_left.list,
+            "up": self.ser_up.list,
+            "down": self.ser_down.list,
+        }
 
     def _initialize_plot(self, size: int):
         """Initializes the plot"""
@@ -127,3 +139,8 @@ class Analysis:
             self._timer = 0
         # Add dummy to baby image
         self._plot_dummy(frame)
+
+    def to_json(self, path_json: str):
+        """Stores the series in JSON format"""
+        with open(path_json, "w") as outfile:
+            json.dump(self.dict, outfile)
