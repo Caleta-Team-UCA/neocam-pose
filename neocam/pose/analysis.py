@@ -15,6 +15,15 @@ class Analysis:
         size: int = 1000,
         frequency: int = 6,
     ):
+        """Performs the pose analysis. Detects the move of each limb
+
+        Parameters
+        ----------
+        size : int, optional
+            Length of the stored series, by default 1000
+        frequency : int, optional
+            Rate at which plots are updated, in seconds, by default 6
+        """
         # Initialize series
         self.ser_right = Series(size=size, frequency=frequency, label="Right")
         self.ser_left = Series(size=size, frequency=frequency, label="Left")
@@ -34,7 +43,7 @@ class Analysis:
 
     @property
     def dict(self) -> dict:
-        """Dictionary containing the series"""
+        """Dictionary containing the series, in list format"""
         return {
             "right": self.ser_right.list,
             "left": self.ser_left.list,
@@ -47,7 +56,15 @@ class Analysis:
         body_detections: List[dai.RawImgDetections],
         face_detections: List[dai.RawImgDetections],
     ):
-        """Updates the series"""
+        """Updates the series with the last detections
+
+        Parameters
+        ----------
+        body_detections : list
+            List of body detections, in dai.RawImgDetections format
+        face_detections : list
+            List of face detections, in dai.RawImgDetections format
+        """
         # Check if there are any body_detections
         try:
             # If there is a detection, compute the size of the box
@@ -76,13 +93,28 @@ class Analysis:
         body_detections: List[dai.RawImgDetections],
         face_detections: List[dai.RawImgDetections],
     ):
-        """Updates the analysis with new information"""
+        """Updates the analysis with new information
+
+        Parameters
+        ----------
+        body_detections : list
+            List of body detections, in dai.RawImgDetections format
+        face_detections : list
+            List of face detections, in dai.RawImgDetections format
+        """
         # Update the series
         self._update_series(body_detections, face_detections)
         # Update dummy
         self.dummy.update()
 
     def plot(self, frame: np.ndarray):
+        """Updates the plots (series and dummy)
+
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Frame where the dummy is plotted
+        """
         # Plot the evolution of box size
         self._timer += 1
         if self._timer >= self.frequency:
@@ -92,6 +124,12 @@ class Analysis:
         self.dummy.plot(frame)
 
     def to_json(self, path_json: str):
-        """Stores the series in JSON format"""
+        """Stores the series in JSON format
+
+        Parameters
+        ----------
+        path_json : str
+            Output path to the json file
+        """
         with open(path_json, "w") as outfile:
             json.dump(self.dict, outfile)

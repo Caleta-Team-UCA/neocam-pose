@@ -22,6 +22,15 @@ class Dummy:
     def __init__(
         self, ser_right: Series, ser_left: Series, ser_up: Series, ser_down: Series
     ):
+        """Plots a dummy inside a frame, portraying the newborns limbs' positions
+
+        Parameters
+        ----------
+        ser_right : neocam.utils.series.Series
+        ser_left : neocam.utils.series.Series
+        ser_up : neocam.utils.series.Series
+        ser_down : neocam.utils.series.Series
+        """
         # Store series
         self.ser_right = ser_right
         self.ser_left = ser_left
@@ -41,17 +50,37 @@ class Dummy:
             }
         )
         # Displace the coordinates accordingly
-        self._move_dict_coords(self.dict_coords)
+        self.dict_coords = self._move_dict_coords(self.dict_coords)
 
     def _move_dict_coords(self, dict_coords: dict, x: int = 300, y: int = 0):
-        """Moves the coordinates contained in a dictionary"""
+        """Moves the coordinates contained in a dictionary
+
+        Parameters
+        ----------
+        dict_coords : dict
+            Dictionary containing the dummy coordinates
+        x : int, optional
+            Displacement on X axis, by default 300
+        y : int, optional
+            Displacement on Y axis, by default 0
+        Returns
+        -------
+        dict
+            New dictionary of dummy coordinates, displaced
+
+        """
+        # Do not modify original dict
+        dict_copy = dict_coords.copy()
         for key, value in dict_coords.items():
             try:
                 # Assume value is a numpy array and displace it
-                dict_coords.update({key: value + np.array([x, y])})
+                new_value = value + np.array([x, y])
             except TypeError:
                 # If not, it is another dictionary. Nest the process
-                self._move_dict_coords(value)
+                new_value = self._move_dict_coords(value, x=x, y=y)
+            # Update dictionary
+            dict_copy.update({key: new_value})
+        return dict_copy
 
     def update(self):
         """Updates dummy status"""
@@ -74,7 +103,13 @@ class Dummy:
             self.status[1] = 1
 
     def plot(self, frame: np.ndarray):
-        """Draws the dummy on a frame"""
+        """Draws the dummy on a frame
+
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Frame where the dummy is drawn
+        """
         # Body
         cv2.polylines(
             frame,
