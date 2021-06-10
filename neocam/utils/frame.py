@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 
-# MobilenetSSD label texts
 from neocam.utils.detections import LIST_LABELS
 
 
