@@ -107,13 +107,18 @@ class Analysis:
         # Update dummy
         self.dummy.update()
 
-    def plot(self, frame: np.ndarray):
+    def plot(self, frame: np.ndarray) -> np.ndarray:
         """Updates the plots (series and dummy)
 
         Parameters
         ----------
         frame : numpy.ndarray
             Frame where the dummy is plotted
+
+        Returns
+        -------
+        numpy.ndarray
+            Frame with dummy plotted
         """
         # Plot the evolution of box size
         self._timer += 1
@@ -121,7 +126,8 @@ class Analysis:
             self.plot_series.update()
             self._timer = 0
         # Add dummy to baby image
-        self.dummy.plot(frame)
+        frame = self.dummy.plot(frame)
+        return frame
 
     def to_json(self, path_json: str):
         """Stores the series in JSON format

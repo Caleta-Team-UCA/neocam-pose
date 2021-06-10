@@ -102,17 +102,24 @@ class Dummy:
         else:
             self.status[1] = 1
 
-    def plot(self, frame: np.ndarray):
+    def plot(self, frame: np.ndarray)->np.ndarray:
         """Draws the dummy on a frame
 
         Parameters
         ----------
         frame : numpy.ndarray
             Frame where the dummy is drawn
+
+        Returns
+        -------
+        numpy.ndarray
+            Frame with dummy plotted
         """
+        # Copy the original array
+        frame_new = frame.copy()
         # Body
         cv2.polylines(
-            frame,
+            frame_new,
             [self.dict_coords["body"]],
             isClosed=False,
             color=(0, 255, 255),
@@ -121,9 +128,10 @@ class Dummy:
         # Limbs
         for idx, name in enumerate(self.limbs):
             cv2.polylines(
-                frame,
+                frame_new,
                 [self.dict_coords[name][self.status[idx]]],
                 isClosed=False,
                 color=(0, 255, 255 * self.status[idx]),
                 thickness=3,
             )
+        return frame_new
