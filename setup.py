@@ -26,7 +26,9 @@ setuptools.setup(
     install_requires=[
         "depthai==2.0.0.1",
         "imutils==0.5.4",
+        "matplotlib==3.3.4",
         "numpy==1.20.3",
         "opencv-python==4.5.2.52",
+        "typer==0.3.2",
     ],
 )

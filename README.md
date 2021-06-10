@@ -2,6 +2,10 @@
 By analysing the pose and motion of newborns, we can detect abnormal behaviours.
 
 ## Set up
+
+To use this repository, you need to have an
+[OAK-D camera](https://store.opencv.ai/products/oak-d) plugged into your computer.
+
 ### Create the environment using Conda
 
   1. Install miniconda
@@ -28,3 +32,20 @@ By analysing the pose and motion of newborns, we can detect abnormal behaviours.
        conda activate neocam
        ```
  
+## Scripts
+
+Remember you have to activate the `neocam` environment before
+running these scripts.
+
+To test the motion detection on real time, run:
+
+```
+python neocam/process_cam.py
+```
+
+To test it on a video, run:
+
+```
+python neocam/process_video.py --path-video PATH-TO-VIDEO
+```
+
