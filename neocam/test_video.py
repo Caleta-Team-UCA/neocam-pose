@@ -12,7 +12,7 @@ def main(
     anonymize_method: str = None,
 ):
     pipeline = Pipeline(
-        path_model_detection=path_model_detection, path_model_face=path_model_face
+        path_model_body=path_model_detection, path_model_face=path_model_face
     )
     device = Device(pipeline, anonymize_method=anonymize_method)
     device.stream_video(path_video, name=name)

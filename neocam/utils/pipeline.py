@@ -11,31 +11,51 @@ class Pipeline(dai.Pipeline):
 
     def __init__(
         self,
-        path_model_detection: str = "models/mobilenet-ssd_openvino_2021.2_8shave.blob",
+        path_model_body: str = "models/mobilenet-ssd_openvino_2021.2_8shave.blob",
         path_model_face: str = "models/face-detection-openvino_2021.2_4shave.blob",
     ):
-        """Basic pipeline for DepthAI"""
+        """Basic pipeline for DepthAI
+
+        Parameters
+        ----------
+        path_model_body : str, optional
+            Path to the model blob file, used to detect full bodies
+        path_model_face : str, optional
+            Path to the model blob file, used to detect faces
+        """
         super(Pipeline, self).__init__()
         self.setOpenVINOVersion(version=dai.OpenVINO.Version.VERSION_2021_1)
         self._create_in_stream()
-        self.create_body_network(path_model_detection)
+        self.create_body_network(path_model_body)
         self.create_face_network(path_model_face)
 
-    def _create_in_stream(self, name: str = None):
+    def _create_in_stream(self):
         """Create xLink input to which host will send frames from the video file"""
         self.in_frame = self.createXLinkIn()
-        if name is None:
-            name = self.in_stream
-        self.in_frame.setStreamName(name)
+        self.in_frame.setStreamName(self.in_stream)
 
-    def _link_output(self, nn, name: str):
-        """Assigns an output stream to given Neural Network"""
+    def _link_output(self, nn: dai.MobileNetDetectionNetwork, name: str):
+        """Assigns an output stream to given Neural Network
+
+        Parameters
+        ----------
+        nn : depthai.MobileNetDetectionNetwork
+            Neural Network
+        name : str
+            Label of the output stream
+        """
         nn_out = self.createXLinkOut()
         nn_out.setStreamName(name)
         nn.out.link(nn_out.input)
 
     def create_body_network(self, path_model: str):
-        """Initializes a neural network used for detecting newborns"""
+        """Initializes a neural network used for detecting bodies
+
+        Parameters
+        ----------
+        path_model : str
+            Path to the blob model
+        """
         # Define a neural network that will make predictions based on the source frames
         self.nn_body = self.createMobileNetDetectionNetwork()
         self.nn_body.setConfidenceThreshold(0.7)
@@ -48,6 +68,13 @@ class Pipeline(dai.Pipeline):
         self._link_output(self.nn_body, self.out_body)
 
     def create_face_network(self, path_model: str):
+        """Initializes a neural network used for detecting faces
+
+        Parameters
+        ----------
+        path_model : str
+            Path to the blob file
+        """
         # Network architecture
         self.nn_face = self.createMobileNetDetectionNetwork()
         self.nn_face.setBlobPath(path_model)
