@@ -1,6 +1,6 @@
 import typer
 
-from neocam.utils.pipeline import Pipeline
+from neocam.pipeline.pipeline_video import PipelineVideo
 from neocam.utils.device import Device
 
 
@@ -11,7 +11,7 @@ def main(
     name: str = "rgb",
     anonymize_method: str = None,
 ):
-    pipeline = Pipeline(
+    pipeline = PipelineVideo(
         path_model_body=path_model_detection, path_model_face=path_model_face
     )
     device = Device(pipeline, anonymize_method=anonymize_method)
