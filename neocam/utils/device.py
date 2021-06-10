@@ -1,4 +1,5 @@
 from time import monotonic
+from typing import List
 
 import cv2
 import depthai as dai
@@ -10,12 +11,22 @@ from neocam.utils.frame import to_planar, display_frame
 
 
 class Device(dai.Device):
-    body_detections: list = []
-    face_detections: list = []
+    body_detections: List[dai.RawImgDetections] = []
+    face_detections: List[dai.RawImgDetections] = []
     anonymize_method: str = "none"
     window: str = ""
 
     def __init__(self, pipeline: dai.Pipeline, anonymize_method: str = "none"):
+        """Loads a pipeline to an OAK-D device, and starts processing a video
+
+        Parameters
+        ----------
+        pipeline : depthai.Pipeline
+            Detection pipeline
+        anonymize_method : str, optional
+            Face anonymization method, by default "none". Can be modified by keypressing
+            during streaming (try holding P)
+        """
         super(Device, self).__init__(pipeline)
 
         # Define anonymization method
@@ -38,11 +49,17 @@ class Device(dai.Device):
         self.analysis = Analysis()
 
     @property
-    def detections(self):
+    def detections(self) -> List[dai.RawImgDetections]:
+        """Returns all the detections"""
         return self.body_detections + self.face_detections
 
     def _send_frame_to_network(self, frame: np.ndarray):
-        """Sends the frame as input to the networks"""
+        """Sends the frame as input to the networks
+
+        Parameters
+        ----------
+        frame : numpy.ndarray
+        """
         img = dai.ImgFrame()
         img.setData(to_planar(frame, (300, 300)))
         img.setTimestamp(monotonic())
@@ -54,7 +71,7 @@ class Device(dai.Device):
         """Gets the detected faces from the network"""
         in_face = self.q_face.tryGet()
 
-        if in_face:
+        if in_face is not None:
             self.face_detections = filter_face_detections(in_face.detections)
 
     def _get_body_detections(self):
@@ -65,7 +82,13 @@ class Device(dai.Device):
             self.body_detections = filter_body_detections(in_body.detections)
 
     def _display_frame(self, frame: np.ndarray):
-        """Displays given frame in opened window"""
+        """Displays given frame in opened window
+
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Image
+        """
         if frame is not None:
             display_frame(
                 self.window,
@@ -76,7 +99,23 @@ class Device(dai.Device):
             cv2.waitKey(5)
 
     def _process_frame(self, frame: np.ndarray) -> bool:
-        """Tries to process a frame"""
+        """Process an input frame:
+            - Sends the frame to the networks
+            - Gets the face detections
+            - Gets the body detections
+            - Updates the pose analysis and plots it
+            - Display the video
+
+        Parameters
+        ----------
+        frame : numpy.ndarray
+            Image
+
+        Returns
+        -------
+        bool
+            True if the frame was processed correctly, otherwise False
+        """
         self._send_frame_to_network(frame)
         self._get_face_detections()
         self._get_body_detections()
@@ -102,7 +141,15 @@ class Device(dai.Device):
         return True
 
     def stream_video(self, path_video: str, name: str = ""):
-        """Streams a video and processes it"""
+        """Streams a video and processes it
+
+        Parameters
+        ----------
+        path_video : str
+            Path to the video file
+        name : str, optional
+            Name of the output video, by default ""
+        """
         self.window = name
         cap = cv2.VideoCapture(path_video)
         cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
