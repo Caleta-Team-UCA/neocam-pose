@@ -1,25 +1,19 @@
 import json
+from typing import List
 
 import depthai as dai
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 
-from neocam.utils.dummy import Dummy
+from neocam.pose.dummy import Dummy
+from neocam.utils.plot_series import PlotSeries
 from neocam.utils.series import Series
 
 
 class Analysis:
-    fig: Figure
-    ax: Axes
-
     def __init__(
         self,
         size: int = 1000,
         frequency: int = 6,
-        plot_series: bool = False,
-        dummy: bool = True,
     ):
         # Initialize series
         self.ser_right = Series(size=size, frequency=frequency, label="Right")
@@ -30,11 +24,13 @@ class Analysis:
         self.frequency = frequency
         self._timer = 0
         # Plot series
-        self.plot_series = plot_series
-        self._initialize_plot(size)
+        self.plot_series = PlotSeries(
+            [self.ser_right, self.ser_left, self.ser_up, self.ser_down],
+            xlim=(0, size),
+            ylim=(0, 5),
+        )
         # Plot dummy
-        self.plot_dummy = dummy
-        self._initialize_dummy()
+        self.dummy = Dummy(self.ser_right, self.ser_left, self.ser_up, self.ser_down)
 
     @property
     def dict(self) -> dict:
@@ -46,33 +42,10 @@ class Analysis:
             "down": self.ser_down.list,
         }
 
-    def _initialize_plot(self, size: int):
-        """Initializes the plot"""
-        if not self.plot_series:
-            return
-        self.fig, self.ax = plt.subplots()
-        self.fig.canvas.draw()
-        self.ser_right.plot(self.ax)
-        self.ser_left.plot(self.ax)
-        self.ser_up.plot(self.ax)
-        self.ser_down.plot(self.ax)
-        self.ax.grid()
-        self.ax.set_xlabel("Time (frames)")
-        self.ax.set_ylabel("Detection box size")
-        self.ax.set_xlim(0, size)
-        self.ax.set_ylim(0, 5)
-        self.ax.legend()
-        plt.show(block=False)
-
-    def _initialize_dummy(self):
-        if not self.plot_dummy:
-            return
-        self.dummy = Dummy()
-
     def _update_series(
         self,
-        body_detections: [dai.RawImgDetections],
-        face_detections: [dai.RawImgDetections],
+        body_detections: List[dai.RawImgDetections],
+        face_detections: List[dai.RawImgDetections],
     ):
         """Updates the series"""
         # Check if there are any body_detections
@@ -98,47 +71,25 @@ class Analysis:
         self.ser_up.append(up)
         self.ser_down.append(down)
 
-    def _update_plot(self):
-        """Updates the plot lines"""
-        if not self.plot_series:
-            return
-        self.ser_right.update_plot()
-        self.ser_left.update_plot()
-        self.ser_up.update_plot()
-        self.ser_down.update_plot()
-        self.fig.canvas.draw()
-        self.fig.canvas.flush_events()
-
-    def _update_dummy(self):
-        down = self.ser_down.movavg[-1]
-        left = self.ser_left.movavg[-1]
-        right = self.ser_right.movavg[-1]
-        self.dummy.update(down, right, left)
-
-    def _plot_dummy(self, frame: np.ndarray):
-        if not self.plot_dummy:
-            return
-        self.dummy.plot(frame)
-
     def update(
         self,
-        body_detections: [dai.RawImgDetections],
-        face_detections: [dai.RawImgDetections],
+        body_detections: List[dai.RawImgDetections],
+        face_detections: List[dai.RawImgDetections],
     ):
         """Updates the analysis with new information"""
         # Update the series
         self._update_series(body_detections, face_detections)
         # Update dummy
-        self._update_dummy()
+        self.dummy.update()
 
     def plot(self, frame: np.ndarray):
         # Plot the evolution of box size
         self._timer += 1
         if self._timer >= self.frequency:
-            self._update_plot()
+            self.plot_series.update()
             self._timer = 0
         # Add dummy to baby image
-        self._plot_dummy(frame)
+        self.dummy.plot(frame)
 
     def to_json(self, path_json: str):
         """Stores the series in JSON format"""
