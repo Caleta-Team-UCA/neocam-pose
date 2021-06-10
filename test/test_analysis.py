@@ -1,6 +1,6 @@
 import os
 
-from neocam.utils.analysis import Analysis
+from neocam.pose.analysis import Analysis
 from neocam.utils.json import read_json
 
 from unittest import TestCase

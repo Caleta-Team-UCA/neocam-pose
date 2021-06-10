@@ -4,7 +4,7 @@ import cv2
 import depthai as dai
 import numpy as np
 
-from neocam.utils.analysis import Analysis
+from neocam.pose.analysis import Analysis
 from neocam.utils.detections import filter_body_detections, filter_face_detections
 from neocam.utils.frame import to_planar, display_frame
 
