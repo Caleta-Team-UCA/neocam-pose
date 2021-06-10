@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+from neocam.utils.series import Series
+
 
 class Dummy:
     limbs = ["arm_left", "arm_right", "leg_left", "leg_right"]
@@ -17,7 +19,14 @@ class Dummy:
     }
     status = [0, 0, 0, 0]  # arm left, right, leg left, right
 
-    def __init__(self):
+    def __init__(
+        self, ser_right: Series, ser_left: Series, ser_up: Series, ser_down: Series
+    ):
+        # Store series
+        self.ser_right = ser_right
+        self.ser_left = ser_left
+        self.ser_up = ser_up
+        self.ser_down = ser_down
         # shape (1080, 1920, 3)
         self.dict_coords.update(
             {
@@ -44,8 +53,11 @@ class Dummy:
                 # If not, it is another dictionary. Nest the process
                 self._move_dict_coords(value)
 
-    def update(self, down: float, right: float, left: float):
+    def update(self):
         """Updates dummy status"""
+        right = self.ser_right.movavg[-1]
+        left = self.ser_left.movavg[-1]
+        down = self.ser_down.movavg[-1]
         if down < 3.1:
             self.status[2] = 0
             self.status[3] = 0
