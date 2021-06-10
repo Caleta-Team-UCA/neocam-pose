@@ -15,6 +15,8 @@ class Device(dai.Device):
     face_detections: List[dai.RawImgDetections] = []
     anonymize_method: str = "none"
     window: str = ""
+    width: int = 300
+    height: int = 300
 
     def __init__(self, pipeline: dai.Pipeline, anonymize_method: str = "none"):
         """Loads a pipeline to an OAK-D device, and starts processing a video
@@ -36,7 +38,7 @@ class Device(dai.Device):
         self.startPipeline()
 
         # Input queue will be used to send video frames to the device.
-        self.q_in = self.getInputQueue(name=pipeline.in_stream)
+        self.q_in = self.getInputQueue(name=pipeline.input)
         # Output queue will be used to get nn data from the video frames.
         self.q_body = self.getOutputQueue(
             name=pipeline.out_body, maxSize=4, blocking=False
@@ -61,10 +63,10 @@ class Device(dai.Device):
         frame : numpy.ndarray
         """
         img = dai.ImgFrame()
-        img.setData(to_planar(frame, (300, 300)))
+        img.setData(to_planar(frame, (self.width, self.height)))
         img.setTimestamp(monotonic())
-        img.setWidth(300)
-        img.setHeight(300)
+        img.setWidth(self.width)
+        img.setHeight(self.height)
         self.q_in.send(img)
 
     def _get_face_detections(self):
@@ -116,11 +118,10 @@ class Device(dai.Device):
         bool
             True if the frame was processed correctly, otherwise False
         """
-        self._send_frame_to_network(frame)
         self._get_face_detections()
         self._get_body_detections()
         self.analysis.update(self.body_detections, self.face_detections)
-        self.analysis.plot(frame)
+        frame = self.analysis.plot(frame)
         self._display_frame(frame)
 
         if cv2.waitKey(1) == ord("q"):
@@ -155,8 +156,25 @@ class Device(dai.Device):
         cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
         while cap.isOpened():
             read_correctly, frame = cap.read()
+
             if not read_correctly:
                 break
+            self._send_frame_to_network(frame)
             keep = self._process_frame(frame)
             if not keep:
                 break
+
+    def stream_cam(self):
+        """Streams from camera and processes it"""
+        self.window = "rgb"
+        cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
+        cam_out = self.getOutputQueue("cam_out", 1, True)
+        keep = True
+        while keep:
+            frame = (
+                np.array(cam_out.get().getData())
+                .reshape((3, self.height, self.width))
+                .transpose(1, 2, 0)
+                .astype(np.uint8)
+            )
+            keep = self._process_frame(frame)
