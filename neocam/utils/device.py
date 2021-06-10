@@ -169,6 +169,7 @@ class Device(dai.Device):
         self.window = "rgb"
         cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
         cam_out = self.getOutputQueue("cam_out", 1, True)
+        self.analysis.dummy.resize(self.width, self.height)
         keep = True
         while keep:
             frame = (

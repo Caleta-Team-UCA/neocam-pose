@@ -5,22 +5,30 @@ from neocam.utils.series import Series
 
 
 class Dummy:
+    width: float = 1920
+    height: int = 1080
     limbs = ["arm_left", "arm_right", "leg_left", "leg_right"]
     dict_coords = {
         "arm_right": {
-            0: np.array([(0, 300), (25, 500), (50, 300)], dtype=np.int32),
-            1: np.array([(0, 300), (100, 450), (150, 200)], dtype=np.int32),
+            0: np.array([(0, 100), (25, 300), (50, 150)], dtype=np.int32),
+            1: np.array([(0, 100), (100, 250), (150, 100)], dtype=np.int32),
         },
         "leg_right": {
-            0: np.array([(0, 600), (50, 500), (100, 700)], dtype=np.int32),
-            1: np.array([(0, 600), (50, 700), (50, 900)], dtype=np.int32),
+            0: np.array([(0, 400), (50, 300), (100, 500)], dtype=np.int32),
+            1: np.array([(0, 400), (50, 500), (50, 700)], dtype=np.int32),
         },
-        "body": np.array([(0, 300), (0, 600)]),
+        "body": np.array([(0, 100), (0, 400)], dtype=np.int32),
     }
     status = [0, 0, 0, 0]  # arm left, right, leg left, right
 
     def __init__(
-        self, ser_right: Series, ser_left: Series, ser_up: Series, ser_down: Series
+        self,
+        ser_right: Series,
+        ser_left: Series,
+        ser_up: Series,
+        ser_down: Series,
+        width: int = 1920,
+        height: int = 1080,
     ):
         """Plots a dummy inside a frame, portraying the newborns limbs' positions
 
@@ -50,37 +58,80 @@ class Dummy:
             }
         )
         # Displace the coordinates accordingly
-        self.dict_coords = self._move_dict_coords(self.dict_coords)
+        self.dict_coords = self._move_dict_coords(self.dict_coords, 300, 300)
+        self.resize(width, height)
 
-    def _move_dict_coords(self, dict_coords: dict, x: int = 300, y: int = 0):
+    def _move_dict_coords(self, dict_coords: dict, x: int, y: int):
         """Moves the coordinates contained in a dictionary
 
         Parameters
         ----------
         dict_coords : dict
             Dictionary containing the dummy coordinates
-        x : int, optional
-            Displacement on X axis, by default 300
-        y : int, optional
-            Displacement on Y axis, by default 0
+        x : int
+            Displacement on X axis
+        y : int
+            Displacement on Y axis
         Returns
         -------
         dict
             New dictionary of dummy coordinates, displaced
-
         """
         # Do not modify original dict
         dict_copy = dict_coords.copy()
         for key, value in dict_coords.items():
             try:
                 # Assume value is a numpy array and displace it
-                new_value = value + np.array([x, y])
+                new_value = np.array(value + np.array([x, y]), dtype=np.int32)
             except TypeError:
                 # If not, it is another dictionary. Nest the process
-                new_value = self._move_dict_coords(value, x=x, y=y)
+                new_value = self._move_dict_coords(value, x, y)
             # Update dictionary
             dict_copy.update({key: new_value})
         return dict_copy
+
+    def _resize_dict_coords(self, dict_coords: dict, width: int, height: int):
+        """Resizes the coordinates contained in a dictionary
+
+        Parameters
+        ----------
+        dict_coords : dict
+            Dictionary containing the dummy coordinates
+        width : int, optional
+            Image width
+        height : int, optional
+            Image height
+        Returns
+        -------
+        dict
+            New dictionary of dummy coordinates, resized
+        """
+        # Do not modify original dict
+        dict_copy = dict_coords.copy()
+        for key, value in dict_coords.items():
+            try:
+                # Assume value is a numpy array and displace it
+                new_value = np.array(
+                    value * np.array([width / self.width, height / self.height]),
+                    dtype=np.int32,
+                )
+            except TypeError:
+                # If not, it is another dictionary. Nest the process
+                new_value = self._resize_dict_coords(value, width, height)
+            # Update dictionary
+            dict_copy.update({key: new_value})
+        return dict_copy
+
+    def resize(self, width: int, height: int):
+        """Resizes the dummy according to new image size
+
+        Parameters
+        ----------
+        width : int
+        height : int
+        """
+        self.dict_coords = self._resize_dict_coords(self.dict_coords, width, height)
+        self.width, self.height = width, height
 
     def update(self):
         """Updates dummy status"""
@@ -102,7 +153,7 @@ class Dummy:
         else:
             self.status[1] = 1
 
-    def plot(self, frame: np.ndarray)->np.ndarray:
+    def plot(self, frame: np.ndarray) -> np.ndarray:
         """Draws the dummy on a frame
 
         Parameters
