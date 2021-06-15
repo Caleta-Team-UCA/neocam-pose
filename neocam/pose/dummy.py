@@ -7,8 +7,8 @@ from neocam.utils.series import Series
 class Dummy:
     width: float = 1920
     height: int = 1080
-    limbs = ["arm_left", "arm_right", "leg_left", "leg_right"]
-    dict_coords = {
+    limbs: list = ["arm_left", "arm_right", "leg_left", "leg_right"]
+    dict_coords: dict = {
         "arm_right": {
             0: np.array([(0, 100), (25, 300), (50, 150)], dtype=np.int32),
             1: np.array([(0, 100), (100, 250), (150, 100)], dtype=np.int32),
@@ -19,7 +19,8 @@ class Dummy:
         },
         "body": np.array([(0, 100), (0, 400)], dtype=np.int32),
     }
-    status = [0, 0, 0, 0]  # arm left, right, leg left, right
+    status: list = [0, 0, 0, 0]  # arm left, right, leg left, right
+    mob_score: int = 0
 
     def __init__(
         self,
@@ -133,8 +134,13 @@ class Dummy:
         self.dict_coords = self._resize_dict_coords(self.dict_coords, width, height)
         self.width, self.height = width, height
 
+    def _compute_mob_score(self, status_before: list):
+        """Computes the new mobility score"""
+        self.mob_score = sum(self.status) - sum(status_before)
+
     def update(self):
         """Updates dummy status"""
+        status_before = self.status.copy()
         right = self.ser_right.movavg[-1]
         left = self.ser_left.movavg[-1]
         down = self.ser_down.movavg[-1]
@@ -152,6 +158,7 @@ class Dummy:
             self.status[1] = 0
         else:
             self.status[1] = 1
+        self._compute_mob_score(status_before)
 
     def plot(self, frame: np.ndarray) -> np.ndarray:
         """Draws the dummy on a frame

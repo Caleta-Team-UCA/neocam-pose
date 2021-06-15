@@ -12,8 +12,9 @@ from neocam.utils.series import Series
 class Analysis:
     def __init__(
         self,
-        size: int = 1000,
-        frequency: int = 6,
+        size: int = 240,
+        frequency: int = 24,
+        freq_dummy: int = 6,
     ):
         """Performs the pose analysis. Detects the move of each limb
 
@@ -22,21 +23,25 @@ class Analysis:
         size : int, optional
             Length of the stored series, by default 1000
         frequency : int, optional
-            Rate at which plots are updated, in seconds, by default 6
+            Rate at which plots are updated, in frames, by default 24
+        freq_dummy : int, optional
+            Rate at which dummy position is updated, in frames, by default 6
         """
-        # Initialize series
-        self.ser_right = Series(size=size, frequency=frequency, label="Right")
-        self.ser_left = Series(size=size, frequency=frequency, label="Left")
-        self.ser_up = Series(size=size, frequency=frequency, label="Up")
-        self.ser_down = Series(size=size, frequency=frequency, label="Down")
+        # Initialize series of box dimensions
+        self.ser_right = Series(size=size, frequency=freq_dummy, label="Right")
+        self.ser_left = Series(size=size, frequency=freq_dummy, label="Left")
+        self.ser_up = Series(size=size, frequency=freq_dummy, label="Up")
+        self.ser_down = Series(size=size, frequency=freq_dummy, label="Down")
+        # Initialize series of score
+        self.ser_score = Series(size=size, frequency=frequency, label="Mob. score")
 
         self.frequency = frequency
         self._timer = 0
         # Plot series
         self.plot_series = PlotSeries(
-            [self.ser_right, self.ser_left, self.ser_up, self.ser_down],
+            [self.ser_score],
             xlim=(0, size),
-            ylim=(0, 5),
+            ylim=(-1, 1),
         )
         # Plot dummy
         self.dummy = Dummy(self.ser_right, self.ser_left, self.ser_up, self.ser_down)
@@ -51,7 +56,7 @@ class Analysis:
             "down": self.ser_down.list,
         }
 
-    def _update_series(
+    def _update_size_series(
         self,
         body_detections: List[dai.RawImgDetections],
         face_detections: List[dai.RawImgDetections],
@@ -88,6 +93,10 @@ class Analysis:
         self.ser_up.append(up)
         self.ser_down.append(down)
 
+    def _update_score_series(self):
+        """Updates the score series"""
+        self.ser_score.append(self.dummy.mob_score)
+
     def update(
         self,
         body_detections: List[dai.RawImgDetections],
@@ -103,9 +112,11 @@ class Analysis:
             List of face detections, in dai.RawImgDetections format
         """
         # Update the series
-        self._update_series(body_detections, face_detections)
+        self._update_size_series(body_detections, face_detections)
         # Update dummy
         self.dummy.update()
+        # Update score
+        self._update_score_series()
 
     def plot(self, frame: np.ndarray) -> np.ndarray:
         """Updates the plots (series and dummy)
